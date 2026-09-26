@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yetti Home Solutions CRM / Proposal v11.2</title>
+<title>Yetti Home Solutions CRM / Proposal v11.3</title>
 <style>
 :root{
  --navy:#082844;--navy2:#0d385f;--blue:#1269bd;--red:#e31818;--ice:#f2f7fb;
@@ -221,6 +221,14 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
   <section class="panel adminonly software-edit matchup-builder" id="heatPumpMatchupBuilder">
    <div class="kicker">Reusable heat-pump combinations • Goodman price book</div><h2>Heat Pump Matchup Builder</h2>
    <p class="note">Build the complete outdoor unit, air handler, electric heater and thermostat combination once. Save it under a simple nickname, then load the entire matchup—including AHRI data and pricing—into Budget, Good, Better or Best while you are in the customer's home.</p>
+   <div class="pricebook-result" style="margin-bottom:12px;background:#eef7ff;border-color:#9cc7ea">
+    <div class="kicker">New • built automatically from the uploaded Goodman price book</div>
+    <div class="quickbuild-grid">
+     <div style="grid-column:span 3"><label>Choose a Goodman heat-pump starter template</label><select id="hpQuickTemplate" onchange="previewHeatPumpQuickTemplate()"></select></div>
+     <button type="button" class="primary small qb-action" onclick="loadHeatPumpQuickTemplate()">Use Selected Template</button>
+    </div>
+    <div id="hpQuickTemplatePreview" class="pricebook-note">Choose a model to prefill the builder. You can still change the air handler, heater kit, thermostat and pricing before saving.</div>
+   </div>
    <div class="matchup-grid">
     <div class="wide"><label>Matchup nickname</label><input id="hpMatchName" placeholder="Example: Goodman 3 Ton 15.2 SEER2 — 10 kW"></div>
     <div><label>System size</label><select id="hpMatchTonnage" onchange="hpMatchTonnageChanged()"><option>1.5</option><option>2</option><option>2.5</option><option selected>3</option><option>3.5</option><option>4</option><option>5</option></select></div>
@@ -228,7 +236,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
     <div class="wide"><label>Outdoor heat pump</label><select id="hpMatchOutdoor" onchange="hpOutdoorChanged()"></select></div>
     <div class="wide"><label>Matching air handler</label><select id="hpMatchIndoor" onchange="hpMatchChanged()"></select></div>
     <div class="wide"><label>Approved heater kit</label><select id="hpMatchHeatKit" onchange="hpMatchChanged()"></select></div>
-    <div><label>Thermostat</label><select id="hpMatchThermostat" onchange="hpThermostatChanged()"><option value="Existing thermostat">Reuse existing thermostat</option><option value="Honeywell T6 Pro">Honeywell T6 Pro</option><option value="Honeywell T10 Pro">Honeywell T10 Pro</option><option value="ecobee Smart Thermostat">ecobee Smart Thermostat</option><option value="Goodman communicating thermostat">Goodman communicating thermostat</option><option value="CUSTOM">Custom / other</option></select></div>
+    <div><label>Thermostat</label><select id="hpMatchThermostat" onchange="hpThermostatChanged()"><option value="Existing thermostat">Reuse existing thermostat</option><option value="Honeywell T4 Pro">Honeywell T4 Pro</option><option value="Honeywell T6 Pro">Honeywell T6 Pro</option><option value="Honeywell T10 Pro">Honeywell T10 Pro</option><option value="ecobee Enhanced">ecobee Enhanced</option><option value="ecobee Premium">ecobee Premium</option><option value="Goodman communicating thermostat">Goodman communicating thermostat</option><option value="CUSTOM">Custom / other</option></select></div>
     <div><label>Thermostat model / description</label><input id="hpMatchThermostatModel" value="Existing thermostat" oninput="hpMatchChanged()"></div>
     <div><label>Thermostat cost</label><input id="hpMatchThermostatCost" type="number" min="0" step=".01" value="0" oninput="hpMatchChanged()"></div>
     <div><label>AHRI Reference #</label><input id="hpMatchAhri" placeholder="Required for certified matchup"></div>
@@ -435,13 +443,37 @@ let hpSellPriceManual=false,hpSavedNames=[];
 function heatPumpMatchups(){try{return JSON.parse(localStorage.getItem('yettiHeatPumpMatchupsV1')||'{}')}catch(e){return {}}}
 function hpBookItem(category,model){return GOODMAN_PRICEBOOK.find(x=>x.category===category&&x.model===model)||null}
 function hpSelectRows(category,tonnage){return GOODMAN_PRICEBOOK.filter(x=>x.category===category&&(!['Heat Pumps','Air Handlers'].includes(category)||x.tonnage===tonnage)).sort((a,b)=>a.model.localeCompare(b.model))}
+function hpOutdoorEfficiency(item){
+ const m=String(item?.description||'').match(/([0-9]{1,2}(?:\.[0-9])?)\s*(?:SEER2|S2)/i);return m?m[1]:'';
+}
+function heatPumpQuickTemplates(){
+ return GOODMAN_PRICEBOOK.filter(x=>x.category==='Heat Pumps'&&x.tonnage).slice().sort((a,b)=>Number(a.tonnage)-Number(b.tonnage)||(Number(hpOutdoorEfficiency(b))-Number(hpOutdoorEfficiency(a)))||a.model.localeCompare(b.model));
+}
+function initHeatPumpQuickTemplates(){
+ const el=document.getElementById('hpQuickTemplate');if(!el)return;const rows=heatPumpQuickTemplates(),groups={};
+ rows.forEach(x=>{const e=hpOutdoorEfficiency(x)||'Other';(groups[e]||(groups[e]=[])).push(x)});
+ el.innerHTML='<option value="">Choose by efficiency, size and model...</option>'+Object.keys(groups).sort((a,b)=>Number(b)-Number(a)).map(e=>`<optgroup label="${esc(e==='Other'?'Other Goodman heat pumps':e+' SEER2 Goodman heat pumps')}">${groups[e].map(x=>`<option value="${esc(x.model)}">${esc(x.tonnage)} Ton • ${esc(x.model)} • ${esc(x.description)} • ${pbMoney(x.price)}</option>`).join('')}</optgroup>`).join('');
+ previewHeatPumpQuickTemplate();
+}
+function previewHeatPumpQuickTemplate(){
+ const model=document.getElementById('hpQuickTemplate')?.value||'',x=hpBookItem('Heat Pumps',model),box=document.getElementById('hpQuickTemplatePreview');if(!box)return;
+ if(!x){box.textContent='Choose a model to prefill the builder. You can still change the air handler, heater kit, thermostat and pricing before saving.';return}
+ const indoorCount=hpSelectRows('Air Handlers',x.tonnage).length,e=hpOutdoorEfficiency(x)||'listed efficiency pending';box.innerHTML=`<b>${esc(x.tonnage)} Ton • ${esc(e)} SEER2 • ${esc(x.model)}</b><br>${esc(x.description)} • Outdoor cost ${pbMoney(x.price)} • ${indoorCount} same-size air-handler choices available. Exact AHRI, EER2 and HSPF2 populate after the certified indoor match is entered.`;
+}
+function loadHeatPumpQuickTemplate(){
+ const model=document.getElementById('hpQuickTemplate')?.value||'',x=hpBookItem('Heat Pumps',model);if(!x){alert('Choose a Goodman starter template first.');return}
+ const ton=document.getElementById('hpMatchTonnage');ton.value=x.tonnage;fillHpMatchSelect('hpMatchOutdoor','Heat Pumps',false,x.model);fillHpMatchSelect('hpMatchIndoor','Air Handlers');fillHpMatchSelect('hpMatchHeatKit','Heat Kits',true);
+ const e=hpOutdoorEfficiency(x);document.getElementById('hpMatchName').value=`Goodman ${x.tonnage} Ton ${e?e+' SEER2 ':''}${x.model}`;document.getElementById('hpMatchAhri').value='';document.getElementById('hpMatchSeer').value=e;document.getElementById('hpMatchEer').value='';document.getElementById('hpMatchHspf').value='';document.getElementById('hpMatchThermostat').value='Honeywell T6 Pro';document.getElementById('hpMatchThermostatModel').value='Honeywell T6 Pro';document.getElementById('hpMatchThermostatCost').value='0';document.getElementById('hpMatchSellPrice').value='';hpSellPriceManual=false;hpMatchChanged();
+ const status=document.getElementById('templateStatus');if(status)status.textContent=`Loaded Goodman starter template ${x.model}. Confirm the air handler and heater kit, then enter the certified AHRI reference, EER2 and HSPF2 before saving the final matchup.`;
+ document.getElementById('hpMatchIndoor')?.focus();
+}
 function fillHpMatchSelect(id,category,allowNone=false,selected=''){
  const el=document.getElementById(id);if(!el)return;const tonnage=document.getElementById('hpMatchTonnage')?.value||'3',rows=hpSelectRows(category,tonnage);
  el.innerHTML=(allowNone?`<option value="">No ${category==='Heat Kits'?'heater kit':'selection'}</option>`:'')+rows.map(x=>`<option value="${esc(x.model)}">${esc(x.model)} — ${esc(x.description)} — ${pbMoney(x.price)}</option>`).join('');
  if(selected&&rows.some(x=>x.model===selected))el.value=selected;
 }
 function initHeatPumpMatchups(){
- fillHpMatchSelect('hpMatchOutdoor','Heat Pumps');fillHpMatchSelect('hpMatchIndoor','Air Handlers');fillHpMatchSelect('hpMatchHeatKit','Heat Kits',true);renderSavedHeatPumpMatchups();hpMatchChanged();
+ initHeatPumpQuickTemplates();fillHpMatchSelect('hpMatchOutdoor','Heat Pumps');fillHpMatchSelect('hpMatchIndoor','Air Handlers');fillHpMatchSelect('hpMatchHeatKit','Heat Kits',true);renderSavedHeatPumpMatchups();hpMatchChanged();
 }
 function hpMatchTonnageChanged(){
  fillHpMatchSelect('hpMatchOutdoor','Heat Pumps');fillHpMatchSelect('hpMatchIndoor','Air Handlers');fillHpMatchSelect('hpMatchHeatKit','Heat Kits',true,document.getElementById('hpMatchHeatKit')?.value||'');document.getElementById('hpMatchSeer').value='';document.getElementById('hpMatchEer').value='';document.getElementById('hpMatchHspf').value='';hpSellPriceManual=false;hpMatchChanged();
