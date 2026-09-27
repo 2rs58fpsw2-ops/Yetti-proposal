@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yetti Home Solutions CRM / Proposal v11.3</title>
+<title>Yetti Home Solutions CRM / Proposal v12 Simple Builder</title>
 <style>
 :root{
  --navy:#082844;--navy2:#0d385f;--blue:#1269bd;--red:#e31818;--ice:#f2f7fb;
@@ -40,11 +40,17 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
 .quickbuild-summary{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef8f7;color:#087d62;font-size:12px;font-weight:850}
 .quickbuild-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.quickbuild-pill{border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 9px;font-size:10px;font-weight:850;color:var(--navy)}
 .proposal-display-picker{margin-top:12px;padding:11px;border:1px solid var(--line);border-radius:10px;background:#f8fbfd}.proposal-display-picker>label{display:block;margin-bottom:7px}.proposal-display-buttons{display:flex;gap:7px;flex-wrap:wrap}.proposal-display-buttons button{min-width:155px}.proposal-display-picker .note{margin-top:7px}
+.simple-builder{border:3px solid var(--navy);background:linear-gradient(145deg,#f1f8ff,#fff)}
+.simple-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end}.simple-steps .wide{grid-column:span 2}
+.simple-result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.simple-option{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}.simple-option h3{margin:0;padding:9px 11px;color:#fff}.simple-option.good h3{background:#0961b2}.simple-option.better h3{background:#082844}.simple-option.best h3{background:#d31316}.simple-option .inside{padding:11px;font-size:11px;line-height:1.48}.simple-option .price{font-size:20px;font-weight:950;color:var(--navy);margin-top:7px}.simple-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.advanced-panel{display:none}.show-advanced .advanced-panel{display:block}.advanced-toggle{border:1px dashed #9fb1bf;background:#f8fbfd;text-align:center}
+@media(max-width:900px){.simple-steps{grid-template-columns:1fr 1fr}.simple-result{grid-template-columns:1fr}}
+@media(max-width:520px){.simple-steps{grid-template-columns:1fr}.simple-steps .wide{grid-column:auto}}
 @media(max-width:760px){.quickbuild-grid{grid-template-columns:1fr 1fr}.quickbuild .qb-action{grid-column:1/-1;width:100%}}
 @media(max-width:480px){.quickbuild-grid{grid-template-columns:1fr}}
 
 /* Customer proposal deck */
 .deck-shell{background:#eaf0f4;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:18px}
+body:not(.presentation-focus):not(.print-proposal) .deck-shell{display:none}
 .decknav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
 .proposal-page{background:#fff;border:1px solid #cfd8df;box-shadow:0 8px 24px rgba(8,40,68,.10);margin:0 auto 16px;max-width:1180px;min-height:690px;overflow:hidden}
 .proposal-page.hiddenpage{display:none}
@@ -182,27 +188,40 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
  </section>
 
  <div class="software-section">
-  <section class="panel quickbuild">
-   <div class="kicker">Fast proposal setup</div><h2>Yetti Quick Build — Budget / Good / Better / Best</h2>
-   <div class="quickbuild-grid">
-    <div><label>System type</label><select id="quickType"><option value="Heat Pump">Heat Pump + Air Handler</option><option value="AC80">AC + Coil + 80% Furnace</option><option value="AC90">AC + Coil + 90% Furnace</option></select></div>
-    <div><label>System size</label><select id="quickSize"><option>1.5</option><option>2</option><option>2.5</option><option selected>3</option><option>3.5</option><option>4</option><option>5</option></select></div>
-    <div><label>Install location</label><select id="quickLocation"><option value="0">Standard</option><option value="1">Attic</option><option value="2">Crawlspace</option></select></div>
-    <button class="teal qb-action" onclick="quickBuildProposal()">Build 4 Options</button>
+  <section class="panel" id="jobInformation">
+   <div class="kicker">Step 1 • Customer information</div><h2>Who Is This Proposal For?</h2>
+   <div class="grid4">
+    <div><label>Customer name</label><input id="custName" value="John & Jane Homeowner"></div>
+    <div><label>Property address</label><input id="address" value="123 Main Street, Pasadena, MD"></div>
+    <div><label>Email</label><input id="email" placeholder="customer@email.com"></div>
+    <div><label>Phone</label><input id="phone" placeholder="410-555-0123"></div>
+    <div><label>Salesperson</label><input id="salesperson" value="Chris"></div>
+    <div><label>Proposal date</label><input id="date" type="date"></div>
+    <div><label>Proposal #</label><input id="proposalNumber" value="YA-0001"></div>
+    <div><label>Valid through</label><input id="validThrough" type="date"></div>
    </div>
-   <div class="quickbuild-pills"><span class="quickbuild-pill">BUDGET — Essential</span><span class="quickbuild-pill">GOOD — Comfort</span><span class="quickbuild-pill">BETTER — Comfort Plus</span><span class="quickbuild-pill">BEST — Ultimate</span></div>
-   <div class="proposal-display-picker">
-    <label>Options shown to customer</label>
-    <div class="proposal-display-buttons">
-     <button type="button" id="showAll4Btn" class="teal small" onclick="setProposalOptionMode('all4')">Budget / Good / Better / Best</button>
-     <button type="button" id="showGBBBtn" class="secondary small" onclick="setProposalOptionMode('gbb')">Good / Better / Best</button>
-     <button type="button" id="showOneBtn" class="secondary small" onclick="setProposalOptionMode('one')">1 Selected Option</button>
-    </div>
-    <div class="note" id="proposalDisplayNote">Customer will see all four options.</div>
-   </div>
-   <div id="quickBuildStatus" class="quickbuild-summary">Choose the system, size and installation location. One tap loads all four editable options and keeps every proposal feature available.</div>
   </section>
-  <section class="panel adminonly software-edit" id="equipmentPriceBook">
+  <section class="panel simple-builder">
+   <div class="kicker">Step 2 • Goodman system choices</div><h2>Build Good / Better / Best</h2>
+   <p class="note">Choose the basic job details once. The software selects three Goodman starter systems from the uploaded price book and fills the proposal automatically.</p>
+   <div class="simple-steps">
+    <div><label>1. Tonnage</label><select id="simpleTonnage"><option>1.5</option><option>2</option><option>2.5</option><option selected>3</option><option>3.5</option><option>4</option><option>5</option></select></div>
+    <div><label>2. Outdoor equipment</label><select id="simpleOutdoor"><option value="HP">Heat Pump</option><option value="AC">Air Conditioner</option></select></div>
+    <div><label>3. Indoor equipment</label><select id="simpleIndoor" onchange="simpleIndoorChanged()"><option value="AHU">Air Handler</option><option value="F80">80% Furnace + Coil</option><option value="F90">90%+ Furnace + Coil</option></select></div>
+    <div><label>4. Thermostat</label><select id="simpleThermostat"><option>Reuse existing thermostat</option><option>Honeywell T4 Pro</option><option selected>Honeywell T6 Pro</option><option>Honeywell T10 Pro</option><option>ecobee Enhanced</option><option>ecobee Premium</option><option>Goodman communicating thermostat</option></select></div>
+    <div id="simpleHeatKitWrap"><label>5. Heater kit</label><select id="simpleHeatKit"></select></div>
+    <div><label>6. Installation</label><select id="simpleLocation"><option value="0">Standard</option><option value="1">Attic</option><option value="2">Crawlspace</option></select></div>
+    <div><label>7. Labor cost per option</label><input id="simpleLabor" type="number" min="0" step="50" value="1800"></div>
+    <div><label>8. Materials per option</label><input id="simpleMaterials" type="number" min="0" step="50" value="750"></div>
+    <div><label>9. Other / overhead</label><input id="simpleOther" type="number" min="0" step="50" value="350"></div>
+    <div><label>10. Target gross margin</label><input id="simpleMargin" type="number" min="1" max="90" step=".5" value="50"></div>
+   </div>
+   <div class="simple-actions"><button class="teal" onclick="simpleBuildProposal()">Build Good / Better / Best</button><button class="primary" onclick="focusPresentation()">Preview Customer Proposal</button><button class="secondary" onclick="saveLocal()">Save Draft</button></div>
+   <div id="simpleBuildStatus" class="quickbuild-summary">Choose the job details, then click Build Good / Better / Best.</div>
+   <div id="simpleBuildPreview" class="simple-result"></div>
+  </section>
+  <section class="panel advanced-toggle"><b>Need more control?</b><div class="note" style="margin:5px 0 9px">Pricing tools, AHRI uploads, saved matchups, discounts, photos and every existing feature are still available.</div><button id="advancedToggleBtn" class="secondary" onclick="toggleAdvancedTools()">Show Advanced Tools</button></section>
+  <section class="panel adminonly software-edit advanced-panel" id="equipmentPriceBook">
    <div class="kicker">Internal pricing • customer never sees equipment cost</div><h2>Yetti Equipment Price Book</h2>
    <div class="row" style="align-items:center;margin-bottom:9px"><div><span class="pricebook-source">GOODMAN • PRICE SHEET 09/08/2026</span></div><div style="text-align:right;font-size:11px;color:#5d6b75">Select parts for any Budget / Good / Better / Best option.</div></div>
    <div class="pricebook-grid">
@@ -218,7 +237,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    <div id="pbSelected" class="pricebook-result"></div>
    <div class="pricebook-note">The Goodman PDF does not contain a thermostat section, so thermostats are not assigned a made-up cost. Add a thermostat manually in the proposal or load it later from a separate thermostat/accessory price sheet.</div>
   </section>
-  <section class="panel adminonly software-edit matchup-builder" id="heatPumpMatchupBuilder">
+  <section class="panel adminonly software-edit matchup-builder advanced-panel" id="heatPumpMatchupBuilder">
    <div class="kicker">Reusable heat-pump combinations • Goodman price book</div><h2>Heat Pump Matchup Builder</h2>
    <p class="note">Build the complete outdoor unit, air handler, electric heater and thermostat combination once. Save it under a simple nickname, then load the entire matchup—including AHRI data and pricing—into Budget, Good, Better or Best while you are in the customer's home.</p>
    <div class="pricebook-result" style="margin-bottom:12px;background:#eef7ff;border-color:#9cc7ea">
@@ -255,7 +274,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    <div style="margin-top:14px"><label>Saved heat-pump matchups</label><select id="hpSavedMatchups" onchange="loadHeatPumpMatchup(this.value)"></select></div>
    <div id="hpSavedMatchupCards" class="saved-matchups"></div>
   </section>
-  <section class="panel adminonly software-edit matchup-builder gas-matchup-builder" id="gasDualMatchupBuilder">
+  <section class="panel adminonly software-edit matchup-builder gas-matchup-builder advanced-panel" id="gasDualMatchupBuilder">
    <div class="kicker">AC, gas furnace &amp; hybrid systems • verified AHRI references</div><h2>AC / Gas / Dual-Fuel Matchup Builder</h2>
    <p class="note">Create and save complete AC/furnace or hybrid heat-pump/furnace systems. Each saved matchup carries the outdoor unit, coil, furnace, thermostat, fuel type, AHRI reference and customer pricing into the proposal.</p>
    <div class="matchup-grid">
@@ -288,7 +307,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    <div style="margin-top:14px"><label>Saved AC / gas / dual-fuel matchups</label><select id="gasSavedMatchups" onchange="loadGasMatchup(this.value)"></select></div>
    <div id="gasSavedMatchupCards" class="saved-matchups"></div>
   </section>
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Reusable equipment packages</div><h2>Proposal Template Library</h2>
    <div class="templatebar">
     <div><label>Load a template</label><select id="templateSelect"></select></div>
@@ -305,21 +324,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    </div>
    <div id="templateStatus" class="template-status">Choose a starting template, then adjust any equipment, price, rebate or wording below.</div>
   </section>
-  <section class="panel">
-   <div class="kicker">Customer & proposal</div><h2>Job Information</h2>
-   <div class="grid4">
-    <div><label>Customer name</label><input id="custName" value="John & Jane Homeowner"></div>
-    <div><label>Property address</label><input id="address" value="123 Main Street, Pasadena, MD"></div>
-    <div><label>Email</label><input id="email" placeholder="customer@email.com"></div>
-    <div><label>Phone</label><input id="phone" placeholder="410-555-0123"></div>
-    <div><label>Salesperson</label><input id="salesperson" value="Chris"></div>
-    <div><label>Proposal date</label><input id="date" type="date"></div>
-    <div><label>Proposal #</label><input id="proposalNumber" value="YA-0001"></div>
-    <div><label>Valid through</label><input id="validThrough" type="date"></div>
-   </div>
-  </section>
-
-  <section class="panel">
+  <section class="panel advanced-panel">
    <div class="kicker">Existing system photos</div><h2>Photograph the Equipment Being Replaced</h2>
    <div class="existing-photo-editor">
     <div class="existing-upload"><label>Existing Outdoor Unit</label><div class="existing-preview" id="existingOutdoorPreview">Tap Choose Photo to add the customer's outdoor equipment</div><div class="existing-actions"><input id="existingOutdoorFile" type="file" accept="image/*" capture="environment" onchange="uploadExistingPhoto('outdoor',this)"><button type="button" class="secondary small" onclick="clearExistingPhoto('outdoor')">Remove</button></div></div>
@@ -328,7 +333,7 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    <p class="note">On a phone or tablet, Choose Photo can open the camera. Photos are saved with the proposal draft and appear automatically in the customer-facing proposal and printed PDF.</p>
   </section>
 
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Customer financing</div><h2>Financing Scan Block</h2>
    <div class="editorgrid">
     <div><label>Financing headline</label><input id="financeHeadline" value="FINANCING AVAILABLE"></div>
@@ -341,39 +346,39 @@ input,select,textarea{width:100%;font:inherit;border:1px solid #cbd7df;border-ra
    <p class="note">If you enter a financing link, the proposal creates the scannable QR automatically. You can also upload the lender’s official QR image, which overrides the generated code.</p>
   </section>
 
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Discounts & incentives</div><h2>Customer Discount Lines</h2>
    <div class="editorgrid" id="discountEditor"></div>
    <p class="note">Unused discounts stay at $0. Utility and electrification incentives are entered by system below. Federal tax credit is shown as informational and is not deducted from the upfront contract price.</p>
   </section>
 
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Equipment, pricing & margin</div><h2>Budget / Good / Better / Best Editor</h2>
    <div id="systemEditors"></div>
   </section>
 
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Installation protection</div><h2>Edit Installation Packages</h2>
    <div id="installEditor"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel advanced-panel">
    <div class="kicker">Project conditions</div><h2>Installation Location</h2>
    <div class="locationcards" id="locationCards"></div>
    <div style="margin-top:10px"><label>Installation notes</label><input id="installationNotes" placeholder="Example: second-floor attic, pull-down stairs, limited access"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel advanced-panel">
    <div class="kicker">Installation package</div><h2>Customer Selection</h2>
    <div class="tiercards" id="installCards"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel advanced-panel">
    <div class="kicker">Indoor air quality & project options</div><h2>Accessories / Adders</h2>
    <div id="accessoryList"></div>
   </section>
 
-  <section class="panel adminonly software-edit">
+  <section class="panel adminonly software-edit advanced-panel">
    <div class="kicker">Standard scope</div><h2>Included With Every Installation</h2>
    <label>One item per line</label><textarea id="includedWork" rows="7"></textarea>
   </section>
@@ -607,6 +612,44 @@ function quickBuildProposal(){
  $("templateStatus").textContent=`Loaded “${name}” using ${loc}. All four options remain fully editable.`;
  $("quickBuildStatus").textContent=`Ready: ${name} • ${loc} • Budget / Good / Better / Best loaded. Review pricing or present to the customer.`;
  refresh();
+}
+let advancedToolsVisible=false;
+function toggleAdvancedTools(){
+ advancedToolsVisible=!advancedToolsVisible;document.querySelector('.software-section')?.classList.toggle('show-advanced',advancedToolsVisible);const b=$('advancedToggleBtn');if(b)b.textContent=advancedToolsVisible?'Hide Advanced Tools':'Show Advanced Tools';
+}
+function simpleIndoorChanged(){
+ const ahu=$('simpleIndoor')?.value==='AHU';$('simpleHeatKitWrap')?.classList.toggle('hidden',!ahu);
+}
+function initSimpleBuilder(){
+ const heat=$('simpleHeatKit');if(heat){const rows=GOODMAN_PRICEBOOK.filter(x=>x.category==='Heat Kits').sort((a,b)=>a.model.localeCompare(b.model));heat.innerHTML='<option value="">No heater kit / choose later</option>'+rows.map(x=>`<option value="${esc(x.model)}">${esc(x.model)} — ${esc(x.description)} — ${pbMoney(x.price)}</option>`).join('')}
+ simpleIndoorChanged();setProposalOptionMode('gbb');renderSimpleBuildPreview();
+}
+function simpleTierByPrice(rows,tier){
+ const a=rows.filter(Boolean).slice().sort((x,y)=>Number(x.price||0)-Number(y.price||0)||x.model.localeCompare(y.model));if(!a.length)return null;const indexes=[0,Math.floor((a.length-1)/2),a.length-1];return a[indexes[tier]]||a[0];
+}
+function simpleOutdoorTier(category,tonnage,tier){
+ const rows=GOODMAN_PRICEBOOK.filter(x=>x.category===category&&x.tonnage===tonnage),groups={};rows.forEach(x=>{const e=hpOutdoorEfficiency(x)||'0';(groups[e]||(groups[e]=[])).push(x)});const levels=Object.keys(groups).sort((a,b)=>Number(a)-Number(b));if(!levels.length)return null;const indexes=[0,Math.floor((levels.length-1)/2),levels.length-1],level=levels[indexes[tier]];return groups[level].slice().sort((a,b)=>Number(a.price||0)-Number(b.price||0))[0]||null;
+}
+function simpleFurnaceRows(high,tonnage){
+ const capacity=Number(tonnage)<=2?'040':Number(tonnage)<=3?'060':Number(tonnage)<=4?'080':'100',all=gasFurnaceRows(high),matched=all.filter(x=>x.model.includes(capacity));return matched.length?matched:all;
+}
+function simpleSystemType(outdoor,indoor){
+ if(indoor==='AHU')return outdoor==='HP'?'Heat Pump + Air Handler':'Air Conditioner + Air Handler';const efficiency=indoor==='F90'?'90%+':'80%';return outdoor==='HP'?`Dual Fuel: Heat Pump + Coil + ${efficiency} Furnace`:`Air Conditioner + Coil + ${efficiency} Furnace`;
+}
+function renderSimpleBuildPreview(){
+ const box=$('simpleBuildPreview');if(!box)return;box.innerHTML=[1,2,3].map(i=>{const s=systems[i];return `<div class="simple-option ${s.tier.toLowerCase()}"><h3>${s.tier}</h3><div class="inside"><b>${esc(s.brand)} ${esc(s.name)}</b><br>${esc(s.tonnage)} • ${esc(s.type)}<br>Outdoor: ${esc(s.outdoorModel||'Choose system details')}<br>${s.indoorModel?`Air handler: ${esc(s.indoorModel)}<br>`:''}${s.furnaceModel?`Furnace: ${esc(s.furnaceModel)}<br>`:''}${s.coilModel?`Coil: ${esc(s.coilModel)}<br>`:''}${s.heatKitModel?`Heater: ${esc(s.heatKitModel)}<br>`:''}Thermostat: ${esc(s.thermostatModel||'—')}<br><b>${esc(s.seer||'Efficiency pending')}</b><div class="price">${money(s.price)}</div></div></div>`}).join('');
+}
+function simpleBuildProposal(){
+ const ton=$('simpleTonnage').value,outdoorChoice=$('simpleOutdoor').value,indoorChoice=$('simpleIndoor').value,outdoorCategory=outdoorChoice==='HP'?'Heat Pumps':'Condensers',thermostatName=$('simpleThermostat').value==='Reuse existing thermostat'?'Existing thermostat':$('simpleThermostat').value,heatKit=indoorChoice==='AHU'?hpBookItem('Heat Kits',$('simpleHeatKit').value||''):null,location=Number($('simpleLocation').value||0),labor=Number($('simpleLabor').value||0),materials=Number($('simpleMaterials').value||0),other=Number($('simpleOther').value||0),margin=Math.min(90,Math.max(1,Number($('simpleMargin').value||50))),warnings=[];
+ for(let tier=0;tier<3;tier++){
+  const i=tier+1,s=systems[i],outdoor=simpleOutdoorTier(outdoorCategory,ton,tier),parts={};if(!outdoor){warnings.push(`No ${ton}-ton ${outdoorCategory} model found`);continue}parts[outdoorCategory]=outdoor;
+  let indoor=null,coil=null,furnace=null;
+  if(indoorChoice==='AHU'){indoor=simpleTierByPrice(GOODMAN_PRICEBOOK.filter(x=>x.category==='Air Handlers'&&x.tonnage===ton),tier);if(indoor)parts['Air Handlers']=indoor;if(heatKit)parts['Heat Kits']=heatKit}
+  else{coil=simpleTierByPrice(GOODMAN_PRICEBOOK.filter(x=>x.category==='Coils'&&x.tonnage===ton),tier);furnace=simpleTierByPrice(simpleFurnaceRows(indoorChoice==='F90',ton),tier);if(coil)parts.Coils=coil;if(furnace)parts.Furnaces=furnace}
+  const thermostat={category:'Thermostats',model:thermostatName,description:'Selected thermostat / control',price:0,tonnage:''};parts.Thermostats=thermostat;
+  const seer=hpOutdoorEfficiency(outdoor),type=simpleSystemType(outdoorChoice,indoorChoice);Object.assign(s,{brand:'Goodman',name:`${seer?seer+' SEER2 ':''}${s.tier} Series`,tonnage:`${ton} Ton`,type,outdoorModel:outdoor.model,indoorModel:indoor?.model||'',furnaceModel:furnace?.model||'',coilModel:coil?.model||'',heatKitModel:heatKit?.model||'',thermostatModel:thermostatName,fuelType:indoorChoice==='AHU'?'':'Natural Gas',lpKitModel:'',ahri:'',ahriUrl:'',seer:efficiencyLabel(seer,'SEER2'),eer:'',hspf:'',laborCost:labor,materialsCost:materials,otherCost:other,targetMarginPct:margin,priceBookParts:parts,equipmentCost:Object.values(parts).reduce((a,x)=>a+Number(x.price||0),0)});s.price=Math.ceil(targetPrice(s)/50)*50;applyManufacturerImage(i);
+ }
+ selectedLocation=Math.max(0,Math.min(2,location));selectedIndex=1;proposalOptionMode='gbb';visiblePage='overview';$('pbOption').value='1';$('simpleBuildStatus').textContent=`Ready: ${ton} Ton ${simpleSystemType(outdoorChoice,indoorChoice)} • ${installationLocations[selectedLocation].name} • Good / Better / Best populated from the Goodman price book.${warnings.length?' Check: '+warnings.join('; ')+'.':''} Exact AHRI matches still require verification.`;renderSimpleBuildPreview();refresh();
 }
 function savedTemplates(){try{return JSON.parse(localStorage.getItem("yettiProposalTemplatesV8")||"{}")}catch(e){return {}}}
 function reusableSystem(s){const x=clone(s);x.ahriCertificateData="";x.ahriCertificateName="";return x}
@@ -1047,6 +1090,7 @@ refresh();
 initPriceBook();
 initHeatPumpMatchups();
 initGasMatchups();
+initSimpleBuilder();
 </script>
 </body>
 </html>
